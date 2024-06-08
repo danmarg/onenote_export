@@ -200,7 +200,11 @@ def download_page(graph_client, page_url, path, indent=0, overwrite=False):
         indent_print(indent, 'HTML file already exists; skipping this page')
         return
     path.mkdir(parents=True, exist_ok=True)
-    response = get(graph_client, page_url, indent=indent)
+    response = None
+    try:
+        response = get(graph_client, page_url, indent=indent)
+    except Exception as e:
+        indent_print(indent, f"Error  downloading {page_url}: {e}")
     if response is not None:
         content = response.text
         indent_print(indent, f'Got content of length {len(content)}')
