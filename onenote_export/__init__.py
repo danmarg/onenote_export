@@ -16,6 +16,7 @@ from xml.etree import ElementTree
 
 import click
 import msal
+import requests
 from pathvalidate import sanitize_filename
 from requests_oauthlib import OAuth2Session
 
@@ -170,7 +171,13 @@ def download_sections(graph_client, sections, path, select=None, indent=0,
     for sec in sections:
         sec_name = sec['displayName']
         indent_print(indent, f'Opening section {sec_name}')
-        pages = get_json(graph_client, sec['pagesUrl'] + '?pagelevel=true')
+        try:
+            pages = get_json(graph_client, sec['pagesUrl'] + '?pagelevel=true')
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 403:
+                indent_print(indent, f'Access denied to section {sec_name}, skipping.')
+                continue
+            raise
         indent_print(indent + 1, f'Got {len(pages)} pages.')
         download_pages(graph_client, pages, path / sec_name, select,
                        indent=indent + 1, overwrite=overwrite)
