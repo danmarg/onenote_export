@@ -179,7 +179,9 @@ def download_sections(graph_client, sections, path, select=None, indent=0,
 def download_pages(graph_client, pages, path, select=None, indent=0,
                    overwrite=False):
     pages, select = filter_items(pages, select, 'pages', indent)
-    pages = sorted([(page['order'], page) for page in pages])
+    # Sort by order, then by createdDateTime as tiebreaker to ensure all sort keys are comparable
+    pages = sorted([(page.get('order', 0), page.get('createdDateTime', ''), page) for page in pages])
+    pages = [(order, page) for order, _, page in pages]
     level_dirs = [None] * 4
     for order, page in pages:
         level = page['level']
